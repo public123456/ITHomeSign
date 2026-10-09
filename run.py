@@ -34,6 +34,8 @@ def send_feishu(status: str):
             result_message = result.get("msg", result.get("StatusMessage", "未知错误"))
             raise RuntimeError(f"飞书机器人返回失败：{result_code} {result_message}")
         print("飞书推送成功")
+    except RuntimeError as e:
+        print(f"飞书推送失败：{e}")
     except Exception as e:
         # 推送失败不应改变签到任务本身的成功或失败状态，也不要打印 Webhook。
         print(f"飞书推送失败：{type(e).__name__}")
