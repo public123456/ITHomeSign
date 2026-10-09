@@ -10,6 +10,35 @@ from pyDes import des, ECB
 requests.packages.urllib3.disable_warnings()
 
 
+def send_feishu(status: str, detail: str):
+    webhook = ENV.get("FEISHU_WEBHOOK", "").strip()
+    if not webhook:
+        print("未配置 FEISHU_WEBHOOK，跳过飞书推送")
+        return
+
+    message = (
+        "IT之家自动签到\n"
+        f"状态：{status}\n"
+        f"时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"详情：{detail}"
+    )
+    try:
+        response = requests.post(
+            webhook,
+            json={"msg_type": "text", "content": {"text": message}},
+            timeout=10,
+        )
+        response.raise_for_status()
+        result = response.json()
+        result_code = result.get("code", result.get("StatusCode", 0))
+        if result_code != 0:
+            raise RuntimeError("飞书机器人返回失败状态")
+        print("飞书推送成功")
+    except Exception as e:
+        # 推送失败不应改变签到任务本身的成功或失败状态，也不要打印 Webhook。
+        print(f"飞书推送失败：{type(e).__name__}")
+
+
 # 项目链连接：https://github.com/daimiaopeng/IthomeQianDao
 # 使用说明：安装python3，再在cmd里输入pip install requests 然后改动下面数据就可以了日志文件保存
 # 在同目录下的log.txt
@@ -216,22 +245,31 @@ def signWithHash(user_hash: str):
     return error
 
 
-if __name__ == "__main__":
+def main():
     if "USERHASH" in ENV and ENV["USERHASH"]:
         print("通过 UserHash 签到")
         error = signWithHash(ENV["USERHASH"])
         if len(error):
             raise ExceptionGroup("签到失败", error)
-        else:
-            print("签到成功")
+        return "通过 UserHash 签到成功"
     elif "USERNAME" in ENV and "PASSWORD" in ENV:
-        print(f"登录 {ENV["USERNAME"]}")
+        print("使用账号密码登录")
         user_hash = getUserHash(ENV["USERNAME"], ENV["PASSWORD"])
         print("登录成功，开始签到")
         error = signWithHash(user_hash)
         if len(error):
             raise ExceptionGroup("签到失败", error)
-        else:
-            print("签到成功")
+        return "账号密码登录签到成功"
     else:
         raise Exception("请配置环境变量 USERNAME 与 PASSWORD，或 USERHASH")
+
+
+if __name__ == "__main__":
+    try:
+        result = main()
+    except Exception as e:
+        send_feishu("失败", str(e))
+        raise
+    else:
+        print("签到成功")
+        send_feishu("成功", result)

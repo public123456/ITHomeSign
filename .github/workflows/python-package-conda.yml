@@ -26,6 +26,7 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
           PASSWORD: ${{ secrets.PASSWORD }}
           USERHASH: ${{ secrets.USERHASH }}
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
         run: python run.py
   workflow-keepalive:
     if: github.event_name == 'schedule'
