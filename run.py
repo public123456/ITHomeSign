@@ -30,8 +30,9 @@ def send_feishu(status: str):
         response.raise_for_status()
         result = response.json()
         result_code = result.get("code", result.get("StatusCode", 0))
-        if result_code != 0:
-            raise RuntimeError("飞书机器人返回失败状态")
+        if str(result_code) != "0":
+            result_message = result.get("msg", result.get("StatusMessage", "未知错误"))
+            raise RuntimeError(f"飞书机器人返回失败：{result_code} {result_message}")
         print("飞书推送成功")
     except Exception as e:
         # 推送失败不应改变签到任务本身的成功或失败状态，也不要打印 Webhook。
