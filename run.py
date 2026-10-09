@@ -10,17 +10,16 @@ from pyDes import des, ECB
 requests.packages.urllib3.disable_warnings()
 
 
-def send_feishu(status: str, detail: str):
+def send_feishu(status: str):
     webhook = ENV.get("FEISHU_WEBHOOK", "").strip()
     if not webhook:
         print("未配置 FEISHU_WEBHOOK，跳过飞书推送")
         return
 
+    icon = "✅" if status == "成功" else "❌"
     message = (
-        "IT之家自动签到\n"
-        f"状态：{status}\n"
-        f"时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-        f"详情：{detail}"
+        f"{icon} IT之家签到{status}\n"
+        f"检测时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
     )
     try:
         response = requests.post(
@@ -268,8 +267,8 @@ if __name__ == "__main__":
     try:
         result = main()
     except Exception as e:
-        send_feishu("失败", str(e))
+        send_feishu("失败")
         raise
     else:
         print("签到成功")
-        send_feishu("成功", result)
+        send_feishu("成功")
