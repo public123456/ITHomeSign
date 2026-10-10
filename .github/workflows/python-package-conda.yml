@@ -3,8 +3,8 @@ name: ITHome Auto Sign
 on:
   push:
   schedule:
-    # GitHub cron uses UTC; 22:10 UTC is 06:10 in Asia/Shanghai.
-    - cron: '10 22 * * *'
+    # GitHub cron uses UTC; 17:30 UTC is 01:30 the next day in Asia/Shanghai.
+    - cron: '30 17 * * *'
   workflow_dispatch:
 
 env:
